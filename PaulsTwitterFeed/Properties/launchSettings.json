@@ -8,7 +8,7 @@
     }
   },
   "profiles": {
-    "TwitterFeed1": {
+    "PaulsTwitterFeed": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,

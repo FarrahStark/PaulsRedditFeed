@@ -9,7 +9,7 @@ if (settings?.TwitterApiKey == null)
 }
 
 // Add services to the container.
-
+builder.Services.AddLogging(loggers => loggers.AddConsole());
 builder.Services.AddControllersWithViews();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddHttpClient<TwitterFeed>()
@@ -18,7 +18,7 @@ builder.Services.AddHttpClient<TwitterFeed>()
         httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer ${settings.TwitterApiKey}");
         httpClient.BaseAddress = new Uri("https://api.twitter.com/2/search/");
     });
-builder.Services.AddSingleton<TwitterFeed>();
+builder.Services.AddHostedService<TwitterFeed>();
 
 var app = builder.Build();
 
@@ -41,5 +41,3 @@ app.MapControllerRoute(
 app.MapFallbackToFile("index.html"); ;
 
 app.Run();
-
-app.Services.GetRequiredService<TwitterFeed>().Start();
