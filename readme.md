@@ -1,0 +1,1 @@
+Most upvoted comment in subreddit this hour
