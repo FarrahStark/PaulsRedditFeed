@@ -12,19 +12,19 @@ if (settings?.Reddit.ApiKey == null)
 
 // Add services to the container.
 builder.Services.AddLogging(loggers => loggers.AddConsole());
+//builder.Services.AddSignalR();
 builder.Services.AddControllersWithViews();
 builder.Services.AddDistributedMemoryCache();
-builder.Services.AddHttpClient<RedditFeed>()
+builder.Services.AddHttpClient<RedditMonitor>()
     .ConfigureHttpClient(httpClient =>
     {
         httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer ${settings.Reddit.ApiKey}");
         httpClient.DefaultRequestHeaders.Add("X-Modhash", settings.Reddit.ModHash);
         httpClient.BaseAddress = new Uri("https://www.reddit.com/r/search/");
     });
-builder.Services.AddHostedService<RedditFeed>();
+builder.Services.AddHostedService<RedditMonitor>();
 builder.Services.AddSingleton(settings);
 builder.Services.AddSingleton<FilterManager>();
-builder.Services.AddSignalR();
 
 var redditClient = new RedditClient(settings.Reddit.AppId, settings.Reddit.RefreshToken, settings.Reddit.ApiKey);
 var thing = redditClient.Account.Me.Name;
@@ -43,11 +43,9 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller}/{action=Index}/{id?}");
 
 app.MapFallbackToFile("index.html");
-
 app.Run();

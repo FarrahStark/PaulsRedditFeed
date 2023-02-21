@@ -1,10 +1,40 @@
 ﻿@page
-@model IndexModel
 @{
     ViewData["Title"] = "Home page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<Table class="text-center">
+    <tr>
+        <th>Title</th>
+        <th>Hottest Post</th>
+        <th>Active Users</th>
+    </tr>
+    <tr id="subreddit-list"></tr>
+</Table>
+
+@section scripts {
+    <script type="text/javascript">
+        async function renderStats() {
+            console.log("rendering");
+            const subreddits = [
+                { Title: "Subreddit1", TopPostTitle: "Whoa dude!", ActiveUserCount: 2402 },
+                { Title: "Subreddit2", TopPostTitle: "Candy!", ActiveUserCount: 15 },
+                { Title: "Subreddit3", TopPostTitle: "Cat Tax", ActiveUserCount: 90241 },
+            ]
+            console.log(subreddits);
+
+            const response = await fetch("subreddits", {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(subreddits),
+            });
+
+            const listElement = document.getElementById("subreddit-list");
+            listElement.innerHTML = await response.text();
+        }
+
+        renderStats();
+    </script>
+}
