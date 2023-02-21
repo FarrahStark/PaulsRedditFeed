@@ -1,5 +1,4 @@
-namespace PaulsRedditFeed.Tests
-{
+namespace PaulsRedditFeed{
     public class UnitTest1
     {
         [Fact]

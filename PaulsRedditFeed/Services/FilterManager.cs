@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
 using System.Text.Json;
 
-namespace PaulsRedditFeed.Services
+namespace PaulsRedditFeed
 {
     public class FilterManager
     {

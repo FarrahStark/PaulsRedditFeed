@@ -16,15 +16,3 @@ html {
 body {
   margin-bottom: 60px;
 }
-
-.subreddit-list {
-    display: flex;
-}
-
-.subreddit-item {
-
-}
-
-td, th {
-    border: 1px solid;
-}
