@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PaulsRedditFeed", "PaulsRedditFeed\PaulsRedditFeed.csproj", "{4464F9B1-B59E-4955-BFCB-D2037B8EAA9F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PaulsRedditFeed.Tests", "PaulsRedditFeed.Tests\PaulsRedditFeed.Tests.csproj", "{A5E87208-9308-41FF-A3E8-8F88B6085C8F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Root", "Solution Root", "{81FF28B9-A733-44D9-9A72-7F18B60C0847}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		readme.md = readme.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4464F9B1-B59E-4955-BFCB-D2037B8EAA9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4464F9B1-B59E-4955-BFCB-D2037B8EAA9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4464F9B1-B59E-4955-BFCB-D2037B8EAA9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4464F9B1-B59E-4955-BFCB-D2037B8EAA9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A5E87208-9308-41FF-A3E8-8F88B6085C8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5E87208-9308-41FF-A3E8-8F88B6085C8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5E87208-9308-41FF-A3E8-8F88B6085C8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5E87208-9308-41FF-A3E8-8F88B6085C8F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C0390E1A-82DF-4B70-B9AA-3B416BC3E6AF}
+	EndGlobalSection
+EndGlobal
