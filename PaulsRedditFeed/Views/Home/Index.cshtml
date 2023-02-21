@@ -1,0 +1,16 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<Table class="text-center">
+    <tr>
+        <th>Title</th>
+        <th>Hottest Post</th>
+        <th>Active Users</th>
+    </tr>
+    <tr id="subreddit-list"></tr>
+</Table>
+
+@section scripts {    
+    <script type="text/javascript">renderStats();</script>
+}
