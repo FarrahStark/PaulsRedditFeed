@@ -8,8 +8,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Folder Include="Controllers\" />
-		<Folder Include="wwwroot\js\signalr\" />
+		<Compile Remove="wwwroot\js\signalr\**" />
+		<Content Remove="wwwroot\js\signalr\**" />
+		<EmbeddedResource Remove="wwwroot\js\signalr\**" />
+		<None Remove="wwwroot\js\signalr\**" />
 	</ItemGroup>
 
 	<ItemGroup>

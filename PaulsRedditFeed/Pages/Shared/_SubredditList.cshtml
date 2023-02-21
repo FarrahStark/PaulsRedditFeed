@@ -1,0 +1,11 @@
+﻿@using PaulsRedditFeed;
+@model List<SubredditViewModel>;
+
+@foreach (var subreddit in Model)
+{
+    <tr>
+        <td>@subreddit.Title</td>
+        <td>@subreddit.TopPostTitle</td>
+        <td>@subreddit.ActiveUserCount</td>
+    </tr>
+}
