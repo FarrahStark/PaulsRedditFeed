@@ -2,13 +2,13 @@
     ViewData["Title"] = "Home Page";
 }
 
-<Table class="text-center">
+<Table class="table">
     <tr>
-        <th>Title</th>
-        <th>Hottest Post</th>
-        <th>Active Users</th>
+        <th scope="col">Title</th>
+        <th scope="col">Hottest Post</th>
+        <th scope="col">Active Users</th>
     </tr>
-    <tr id="subreddit-list"></tr>
+    <tbody id="subreddit-list"></tbody>
 </Table>
 
 @section scripts {    

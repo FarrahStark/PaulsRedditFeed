@@ -28,7 +28,6 @@ builder.Services.AddSingleton(settings);
 builder.Services.AddSingleton<FilterManager>();
 
 var redditClient = new RedditClient(settings.Reddit.AppId, settings.Reddit.RefreshToken, settings.Reddit.ApiKey);
-var thing = redditClient.Account.Me.Name;
 builder.Services.AddSingleton((services) => redditClient);
 
 var app = builder.Build();
