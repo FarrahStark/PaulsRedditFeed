@@ -3,19 +3,23 @@ using Reddit;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
+builder.Services.AddSignalR(options =>
+{
+    options.EnableDetailedErrors = true;
+    options.KeepAliveInterval = TimeSpan.FromMinutes(1);
+});
 var settings = builder.Configuration.GetSection("AppSettings").Get<AppSettings>();
 if (settings?.Reddit.ApiKey == null)
 {
     var message = "Unable to find AppSettings section from app configuration. Check appsettings.json and secrets configuration.";
     throw new SettingsLoadException(message);
 }
-builder.Services.AddSingleton(settings);
-builder.Services.AddSingleton(settings.Reddit);
 
 // Add services to the container.
+builder.Services.AddSingleton(settings);
+builder.Services.AddSingleton(settings.Reddit);
 builder.Services.AddControllersWithViews();
 builder.Services.AddLogging(loggers => loggers.AddConsole());
-//builder.Services.AddSignalR();
 builder.Services.AddControllersWithViews();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddHttpClient<RedditMonitor>()
@@ -51,5 +55,5 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
+app.MapHub<RedditStatsHub>("/stats");
 app.Run();

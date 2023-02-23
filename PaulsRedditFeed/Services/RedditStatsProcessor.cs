@@ -1,4 +1,4 @@
-﻿namespace PaulsRedditFeed.Services
+﻿namespace PaulsRedditFeed
 {
     public class RedditStatsProcessor
     {
