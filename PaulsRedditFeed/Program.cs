@@ -9,6 +9,8 @@ if (settings?.Reddit.ApiKey == null)
     var message = "Unable to find AppSettings section from app configuration. Check appsettings.json and secrets configuration.";
     throw new SettingsLoadException(message);
 }
+builder.Services.AddSingleton(settings);
+builder.Services.AddSingleton(settings.Reddit);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -24,7 +26,6 @@ builder.Services.AddHttpClient<RedditMonitor>()
         httpClient.BaseAddress = new Uri("https://www.reddit.com/r/search/");
     });
 builder.Services.AddHostedService<RedditMonitor>();
-builder.Services.AddSingleton(settings);
 builder.Services.AddSingleton<FilterManager>();
 
 var redditClient = new RedditClient(settings.Reddit.AppId, settings.Reddit.RefreshToken, settings.Reddit.ApiKey);
