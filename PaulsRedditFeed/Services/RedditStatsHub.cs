@@ -1,9 +1,12 @@
-﻿namespace PaulsRedditFeed.Services
+﻿using Microsoft.AspNetCore.SignalR;
+using System.Text.Json;
+
+namespace PaulsRedditFeed
 {
     /// <summary>
-    /// Reads Changes
+    /// Manages websocket connections to clients
     /// </summary>
-    public class RedditStatsHub
+    public class RedditStatsHub : Hub
     {
     }
 }
