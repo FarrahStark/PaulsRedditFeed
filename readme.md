@@ -15,7 +15,7 @@ Prerequisits are installed automatically
 - Powershell Core 7.2+ (used for automating project setup)
 - .NET 6 SDK/Runtime
 - Docker (used to host a local redis database for caching, sticky websocket sessions and, integration testing)
-- Get Reddit API Secrets (request the secrets from paulstark256@gmail.com)
+- Setup Reddit API Secrets for local environment (request the secrets from paul via email)
 
 ### Running the project Locally
 
