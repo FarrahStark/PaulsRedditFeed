@@ -1,6 +1,10 @@
 # Paul's Reddit Feed
 
-ASP.NET Core (.NET 6.0) Twitter Search API Usage Example
+ASP.NET Core (.NET 6.0) Reddit API Usage Example
+
+## System Architecture
+
+![PaulsRedditFeed Software Architecture Diagram](AppArchitecture.png?raw=true "Title")
 
 ## Getting Started
 
@@ -9,15 +13,17 @@ ASP.NET Core (.NET 6.0) Twitter Search API Usage Example
 Prerequisits are installed automatically
 
 - Powershell Core 7.2+ (used for automating project setup)
-- Visual Studio 2022
+- .NET 6 SDK/Runtime
 - Docker (used to host a local redis database for caching, sticky websocket sessions and, integration testing)
 - Get Reddit API Secrets (request the secrets from paulstark256@gmail.com)
 
-### Getting the Project Running Locally
+### Running the project Locally
 
-- Install/update powershell core to 7.2 or higher
+You need to have the ASP.NET webserver built
+
+- Install/update powershell core to 7.2 or higher https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.3
 - run `dev-startup.ps1`
-- Install Docker for windows
+- Install Docker https://www.docker.com/
 - clone this repository
 - open PaulsRedditFeed.sln in Visual Studio 2022
 - In Solution Explorer, right-click PaulsRedditFeed project, and select manage user secrets
