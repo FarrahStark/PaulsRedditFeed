@@ -7,7 +7,7 @@
      This script is idempotent, so you can run it as many times as you want
      without hurting anything
 .NOTES
-     Author     : Paul Miller - paulstark256@gmail.com
+     Author     : Paul Miller
 .LINK
      https://github.com/PaulStarkX/PaulsTwitterFeed
 #>
