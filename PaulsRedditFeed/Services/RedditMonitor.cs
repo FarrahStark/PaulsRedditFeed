@@ -9,11 +9,16 @@ namespace PaulsRedditFeed
 {
     public class RedditMonitor : BackgroundService
     {
+        /// <summary>
+        /// A unique id for each running instance of PaulsRedditFeed.
+        /// </summary>
+        private static readonly string ServerInstanceId = Guid.NewGuid().ToString();
         private static readonly Random random = new Random();
         private readonly ILogger<RedditMonitor> logger;
         private readonly RedditApiClient reddit;
         private readonly ConnectionMultiplexer redis;
         private readonly AppSettings settings;
+        private ISubscriber messageQueue;
 
         public RedditMonitor(
             ILogger<RedditMonitor> logger,
@@ -25,28 +30,25 @@ namespace PaulsRedditFeed
             this.reddit = reddit;
             this.redis = redis;
             this.settings = settings;
+            messageQueue = redis.GetSubscriber();
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             SeedCache();
             logger.LogInformation($"{nameof(RedditMonitor)} Started");
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                try
-                {
-                    await MonitorAllSubreddits(stoppingToken);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Subreddits scan failed");
-                }
-                finally
-                {
-                    await Task.Delay(settings.PollingIntervalMilliseconds);
-                }
+                await StartMonitoringSubreddits(stoppingToken);
             }
-            logger.LogInformation($"{nameof(RedditMonitor)} Stopped");
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Subreddits scan failed");
+            }
+            finally
+            {
+                await Task.Delay(settings.PollingIntervalMilliseconds);
+            }
         }
 
         /// <summary>
@@ -56,49 +58,96 @@ namespace PaulsRedditFeed
         /// </summary>
         /// <param name="stoppingToken">Allows the async operations to be cancelled</param>
         /// <returns>a task tracking the async operation</returns>
-        private async Task MonitorAllSubreddits(CancellationToken stoppingToken)
+        private async Task StartMonitoringSubreddits(CancellationToken stoppingToken)
         {
-            logger.LogDebug("Scanning all subreddits");
             // Get updated info about monitored subreddits
             var subredditSubscriptions = await redis.GetDatabase()
                 .HashGetAllAsync(settings.Redis.SubredditSubscriptionKey);
 
-            // Publish raw subreddit data to queue
-            var subredditMonitoringTasks = subredditSubscriptions
-                .Where(subreddit => int.Parse(subreddit.Value) > 0)
-                .Select(subreddit => Task.Run(() => MonitorSubreddit(subreddit.Key, stoppingToken)));
+            var db = redis.GetDatabase();
 
-            await Task.WhenAll(subredditMonitoringTasks);
-            logger.LogDebug("All subreddits scan completed");
+            // Publish raw subreddit data to queue
+            var monitoredSubreddits = subredditSubscriptions
+                .Where(subreddit => int.Parse(subreddit.Value) > 0)
+                .ToArray();
+
+            // watch the queue for incoming tasks
+            messageQueue.Subscribe(settings.Redis.MonitorQueueKey).OnMessage(async payload =>
+            {
+                if (stoppingToken.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                var subredditName = payload.Message.ToString();
+                try
+                {
+                    logger.LogDebug($"Scanning {subredditName} for updates");
+                    await Task.Run(() => MonitorSubreddit(subredditName, stoppingToken));
+                }
+                finally
+                {
+                    // Once a subreddit has been monitored, wait a bit and throw it back on the queue
+                    // to get that subreddit monitored again by one of the server instances
+                    await Task.Delay(1000);
+                    await messageQueue.PublishAsync(settings.Redis.MonitorQueueKey, subredditName);
+                }
+            });
+
+            // One of the server instances will get a distributed lock here, and will get the monitoring queue running
+            if (await db.LockTakeAsync(settings.Redis.MonitorQueueLock, ServerInstanceId, TimeSpan.FromSeconds(30)))
+            {
+                logger.LogInformation("Monitor queue lock acquired. Initializing monitoring queue tasks");
+                try
+                {
+                    var startMonitoringQueue = monitoredSubreddits.Select(s =>
+                    {
+                        var subName = s.Name.ToString();
+                        logger.LogInformation($"Initializing monitoring for r/{s.Name}");
+                        return messageQueue.PublishAsync(settings.Redis.MonitorQueueKey, s.Name);
+                    });
+                    await Task.WhenAll(startMonitoringQueue);
+                }
+                finally
+                {
+                    logger.LogInformation("Monitor queue initialized. Releasing lock");
+                    await db.LockReleaseAsync(settings.Redis.MonitorQueueKey, ServerInstanceId);
+                }
+            }
+            else
+            {
+                logger.LogInformation("Unable to get lock. Monitor queue is probably being initialzed by a different server instance");
+            }
         }
 
         private async Task MonitorSubreddit(string subredditName, CancellationToken stoppingToken)
         {
             try
             {
-                logger.LogInformation($"Scanning subreddit {subredditName}");
+                logger.LogInformation($"Scanning subreddit r/{subredditName}");
 
-                // Collect subreddit data from Reddit API and Queue up
-
-                //Reddit.Net stuff
-                //var subreddit = await Task.Run(() => reddit.Subreddit(subredditName).About());
-                //var hottestPost = subreddit.Posts.GetHot(limit: 1).OrderByDescending(post => post.Score).First();
-                //var dataToCache = new SubredditRawData(DateTime.UtcNow, subreddit, hottestPost);
+                // Collect json data from reddit
                 var subredditData = await reddit.SendRequestAsync<RawSubredditInfo>(
                     new UrlParts($"r/{subredditName}/about?user=&show=all&sr_detail=False&after=&before=&limit=1&count=0&raw_json=1"));
                 var hotPosts = await reddit.SendRequestAsync<HotPostRawData>(
                     new UrlParts($"r/{subredditName}/hot?g=&show=all&sr_detail=False&after=&before=&limit=5&count=0&raw_json=1"));
 
-                // pass returned json from redis straight to the queue without deserializing
+                // pass returned json from reddit straight to the queue without deserializing
                 var dataJson = $"{{\"HotPosts\": {hotPosts},\"Subreddit\": {subredditData}}}";
-                var messageQueue = redis.GetSubscriber();
+
+
+                // Queue up the collected data for processing
                 await messageQueue.PublishAsync(settings.Redis.QueueChannelName, dataJson);
-                logger.LogInformation($"Scan complete {subredditName}");
+                logger.LogInformation($"Scan complete r/{subredditName}");
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, $"Scanning of subreddit {subredditName} failed.");
-                throw;
+            }
+            finally
+            {
+                // queue up the subreddit to get monitored again later
+                await messageQueue.PublishAsync(settings.Redis.MonitorQueueKey, subredditName);
             }
         }
 
@@ -154,6 +203,12 @@ namespace PaulsRedditFeed
             var db = redis.GetDatabase();
             db.HashSet(settings.Redis.UserKey, userEntries);
             db.HashSet(settings.Redis.SubredditSubscriptionKey, subscriptions);
+        }
+
+        public override void Dispose()
+        {
+            messageQueue.Unsubscribe(settings.Redis.MonitorQueueKey);
+            base.Dispose();
         }
     }
 }
