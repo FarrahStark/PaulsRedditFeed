@@ -1,5 +1,11 @@
 ﻿namespace PaulsRedditFeed;
 
+public class SubredditDataMessage
+{
+    public RawSubredditInfo Subreddit { get; set; }
+    public HotPostRawData HotPosts { get; set; }
+}
+
 public class RawSubredditInfo
 {
     public string kind { get; set; }

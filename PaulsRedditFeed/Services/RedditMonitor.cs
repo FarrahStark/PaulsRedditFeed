@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using PaulsRedditFeed.Models;
 using Reddit;
 using StackExchange.Redis;
 using System.Text.Json;
@@ -10,13 +11,13 @@ namespace PaulsRedditFeed
     {
         private static readonly Random random = new Random();
         private readonly ILogger<RedditMonitor> logger;
-        private readonly RedditClient reddit;
+        private readonly RedditApiClient reddit;
         private readonly ConnectionMultiplexer redis;
         private readonly AppSettings settings;
 
         public RedditMonitor(
             ILogger<RedditMonitor> logger,
-            RedditClient reddit,
+            RedditApiClient reddit,
             ConnectionMultiplexer redis,
             AppSettings settings)
         {
@@ -57,7 +58,7 @@ namespace PaulsRedditFeed
         /// <returns>a task tracking the async operation</returns>
         private async Task MonitorAllSubreddits(CancellationToken stoppingToken)
         {
-            logger.LogInformation("Scanning all subreddits");
+            logger.LogDebug("Scanning all subreddits");
             // Get updated info about monitored subreddits
             var subredditSubscriptions = await redis.GetDatabase()
                 .HashGetAllAsync(settings.Redis.SubredditSubscriptionKey);
@@ -65,37 +66,34 @@ namespace PaulsRedditFeed
             // Publish raw subreddit data to queue
             var subredditMonitoringTasks = subredditSubscriptions
                 .Where(subreddit => int.Parse(subreddit.Value) > 0)
-                .Take(1)
                 .Select(subreddit => Task.Run(() => MonitorSubreddit(subreddit.Key, stoppingToken)));
 
             await Task.WhenAll(subredditMonitoringTasks);
-            logger.LogInformation("All subreddits scan completed");
+            logger.LogDebug("All subreddits scan completed");
         }
 
         private async Task MonitorSubreddit(string subredditName, CancellationToken stoppingToken)
         {
             try
             {
-                //logger.LogInformation($"Scanning subreddit {subredditName}");
+                logger.LogInformation($"Scanning subreddit {subredditName}");
 
-                //// Collect subreddit data from Reddit API and Queue up
+                // Collect subreddit data from Reddit API and Queue up
+
+                //Reddit.Net stuff
                 //var subreddit = await Task.Run(() => reddit.Subreddit(subredditName).About());
                 //var hottestPost = subreddit.Posts.GetHot(limit: 1).OrderByDescending(post => post.Score).First();
                 //var dataToCache = new SubredditRawData(DateTime.UtcNow, subreddit, hottestPost);
-                //string dataJson = string.Empty;
+                var subredditData = await reddit.SendRequestAsync<RawSubredditInfo>(
+                    new UrlParts($"r/{subredditName}/about?user=&show=all&sr_detail=False&after=&before=&limit=1&count=0&raw_json=1"));
+                var hotPosts = await reddit.SendRequestAsync<HotPostRawData>(
+                    new UrlParts($"r/{subredditName}/hot?g=&show=all&sr_detail=False&after=&before=&limit=5&count=0&raw_json=1"));
 
-                //dataJson = JsonSerializer.Serialize(dataToCache, new JsonSerializerOptions
-                //{
-                //    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-                //    IgnoreReadOnlyProperties = true
-                //});
-
-                //var messageQueue = redis.GetSubscriber();
-
-                //await messageQueue.PublishAsync(settings.Redis.QueueChannelName, dataJson);
-
-
-                //logger.LogInformation($"Scan complete {subredditName}");
+                // pass returned json from redis straight to the queue without deserializing
+                var dataJson = $"{{\"HotPosts\": {hotPosts},\"Subreddit\": {subredditData}}}";
+                var messageQueue = redis.GetSubscriber();
+                await messageQueue.PublishAsync(settings.Redis.QueueChannelName, dataJson);
+                logger.LogInformation($"Scan complete {subredditName}");
             }
             catch (Exception ex)
             {

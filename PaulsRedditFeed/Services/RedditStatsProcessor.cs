@@ -32,18 +32,30 @@ namespace PaulsRedditFeed
             messageQueue.Subscribe(settings.Redis.QueueChannelName).OnMessage(async payload =>
             {
                 logger.LogInformation("Message recieved from queue. Processing...");
-                var subreddit = JsonSerializer.Deserialize<SubredditRawData>(payload.Message);
-                if (subreddit == null)
+                SubredditDataMessage? message = null;
+                try
+                {
+                    message = JsonSerializer.Deserialize<SubredditDataMessage>(payload.Message);
+                }
+                catch (Exception ex)
+                {
+                }
+
+                if (message == null)
                 {
                     logger.LogError($"Unable to deserialize {nameof(SubredditRawData)}: {payload.Message}");
                 }
                 else
                 {
+                    var topPost = message.HotPosts.data.children.FirstOrDefault();
+
                     var viewModel = new SubredditViewModel
                     {
-                        Title = subreddit.Payload.Title,
-                        ActiveUserCount = subreddit.Payload.ActiveUserCount ?? 0,
-                        TopPostTitle = subreddit.HottestPost.Title,
+                        Title = message.Subreddit.data.display_name,
+                        ActiveUserCount = message.Subreddit.data.active_user_count,
+                        TopPostTitle = topPost?.data?.title ?? "No title found!",
+                        TopPostUpvotes = topPost?.data?.ups ?? 0,
+                        TopPostDownvotes = topPost?.data?.downs ?? 0,
                     };
                     await NotifyClientsAsync(viewModel);
                     logger.LogInformation($"Notified clients of updates in r/{viewModel.Title}");

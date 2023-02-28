@@ -65,7 +65,6 @@ public class ListingData
     public bool is_created_from_ads_ui { get; set; }
     public bool author_premium { get; set; }
     public string thumbnail { get; set; }
-    public bool edited { get; set; }
     public object author_flair_css_class { get; set; }
     public object[] author_flair_richtext { get; set; }
     public Gildings gildings { get; set; }
@@ -90,8 +89,6 @@ public class ListingData
     public bool is_crosspostable { get; set; }
     public bool pinned { get; set; }
     public bool over_18 { get; set; }
-    public All_Awardings[] all_awardings { get; set; }
-    public object[] awarders { get; set; }
     public bool media_only { get; set; }
     public string link_flair_template_id { get; set; }
     public bool can_gild { get; set; }

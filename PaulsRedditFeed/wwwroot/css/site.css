@@ -1,18 +1,50 @@
 html {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+    html {
+        font-size: 16px;
+    }
 }
 
 html {
-  position: relative;
-  min-height: 100%;
+    position: relative;
+    min-height: 100%;
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
+}
+
+.vote-icon {
+    height: 1rem;
+    width: 1rem;
+}
+
+.hot-post {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.subreddit-table {
+    table-layout: fixed;
+    width: 100%;
+    position: relative;
+    max-width: calc(100vw - 64px);
+}
+
+.subreddit-column {
+    width: 140px;
+}
+
+.active-users-column {
+    width: 109px;
+    text-align: right;
+}
+
+.vote-column {
+    width: 64px;
+    text-align:center
 }
