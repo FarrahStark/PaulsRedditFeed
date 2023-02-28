@@ -10,13 +10,19 @@ PaulsRedditFeed allows users to select N-number of subreddits to watch for activ
 Uses Redis as a distributed cache, and message queue for loadbalanced deployments of this application. SignalR uses Redis to create sticky
 sessions to keep clients connected to the same server instance for their session.
 
-The reddit API is rate limited to 60 requests per second so for testing I created a simulated reddit API for the calls I am making. This will
-allow enough data throughput to show the real-time nature of the system, demonstrate proper multithreading, logging, caching, authentication,
-websockets usage with sticky sessions
+The reddit API is rate limited to 60 requests per second so for testing and demonstration purposes I created a simulated reddit API with no
+rate limits. This allows enough data throughput to show the real-time nature of the system, and to demonstrate proper multithreading, logging,
+caching, authentication, and websockets usage with sticky sessions.
 
 ## System Architecture
 
 ![PaulsRedditFeed Software Architecture Diagram](AppArchitecture.png?raw=true "Title")
+
+### Monitoring Reddit
+
+Since this is a load balanced application, we don't want every instance scanning the same subreddits. We want to spread the monitoring load across
+server instances and not duplicate calls. The instances don't talk to eachother so we queue up the monitoring tasks. Then the server instances
+process the monitoring tasks in the message queue, so each server can perform a different monitoring task, spreading the work out.
 
 ## Getting Started
 
@@ -36,6 +42,7 @@ websockets usage with sticky sessions
 1. Install .NET 6 SDK https://dotnet.microsoft.com/en-us/download/dotnet/6.0
 1. Restart your machine
 1. Clone this repository
+1. Switch Docker to use Linux Containers
 1. Run `dev-startup.ps1`
 1. Request a copy of the secrets from Paul
 
