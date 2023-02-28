@@ -19,11 +19,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="IdentityModel" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
 		<PackageReference Include="Reddit" Version="1.5.2" />
 		<PackageReference Include="StackExchange.Redis" Version="2.6.96" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="[6.0,7.0)" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="[6.0,7.0)" />
+		<PackageReference Include="Microsoft.Identity.Web" />
 	</ItemGroup>
 
 </Project>

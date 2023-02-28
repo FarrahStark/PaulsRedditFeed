@@ -6,8 +6,10 @@ namespace PaulsRedditFeed
     public class SubredditRawData
     {
         public DateTime CollectedTime { get; set; }
-        public SerializableSubreddit Payload { get; }
+        public SerializableSubreddit Payload { get; set; } = new SerializableSubreddit();
         public Post HottestPost { get; set; }
+
+        public SubredditRawData() { }
 
         public SubredditRawData(DateTime collectedTime, SerializableSubreddit payload, Post hottestPost)
         {

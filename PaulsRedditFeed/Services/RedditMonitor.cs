@@ -11,24 +11,18 @@ namespace PaulsRedditFeed
         private static readonly Random random = new Random();
         private readonly ILogger<RedditMonitor> logger;
         private readonly RedditClient reddit;
-        private readonly IHubContext<RedditStatsHub> statsHub;
         private readonly ConnectionMultiplexer redis;
-        private readonly HttpClient httpClient;
         private readonly AppSettings settings;
-        private static readonly string MonitoredSubreddits = "monitored_subreddits";
-        private static readonly string users = "users";
 
         public RedditMonitor(
             ILogger<RedditMonitor> logger,
             RedditClient reddit,
             ConnectionMultiplexer redis,
-            HttpClient httpClient,
             AppSettings settings)
         {
             this.logger = logger;
             this.reddit = reddit;
             this.redis = redis;
-            this.httpClient = httpClient;
             this.settings = settings;
         }
 
@@ -71,6 +65,7 @@ namespace PaulsRedditFeed
             // Publish raw subreddit data to queue
             var subredditMonitoringTasks = subredditSubscriptions
                 .Where(subreddit => int.Parse(subreddit.Value) > 0)
+                .Take(1)
                 .Select(subreddit => Task.Run(() => MonitorSubreddit(subreddit.Key, stoppingToken)));
 
             await Task.WhenAll(subredditMonitoringTasks);
@@ -81,26 +76,26 @@ namespace PaulsRedditFeed
         {
             try
             {
-                logger.LogInformation($"Scanning subreddit {subredditName}");
+                //logger.LogInformation($"Scanning subreddit {subredditName}");
 
-                // Collect subreddit data from Reddit API and Queue up
-                var subreddit = await Task.Run(() => reddit.Subreddit(subredditName).About());
-                var hottestPost = subreddit.Posts.GetHot(limit: 1).OrderByDescending(post => post.Score).First();
-                var dataToCache = new SubredditRawData(DateTime.UtcNow, subreddit, hottestPost);
-                string dataJson = string.Empty;
+                //// Collect subreddit data from Reddit API and Queue up
+                //var subreddit = await Task.Run(() => reddit.Subreddit(subredditName).About());
+                //var hottestPost = subreddit.Posts.GetHot(limit: 1).OrderByDescending(post => post.Score).First();
+                //var dataToCache = new SubredditRawData(DateTime.UtcNow, subreddit, hottestPost);
+                //string dataJson = string.Empty;
 
-                dataJson = JsonSerializer.Serialize(dataToCache, new JsonSerializerOptions
-                {
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-                    IgnoreReadOnlyProperties = true
-                });
+                //dataJson = JsonSerializer.Serialize(dataToCache, new JsonSerializerOptions
+                //{
+                //    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                //    IgnoreReadOnlyProperties = true
+                //});
 
-                var messageQueue = redis.GetSubscriber();
+                //var messageQueue = redis.GetSubscriber();
 
-                await messageQueue.PublishAsync(settings.Redis.QueueChannelName, dataJson);
+                //await messageQueue.PublishAsync(settings.Redis.QueueChannelName, dataJson);
 
 
-                logger.LogInformation($"Scan complete {subredditName}");
+                //logger.LogInformation($"Scan complete {subredditName}");
             }
             catch (Exception ex)
             {
