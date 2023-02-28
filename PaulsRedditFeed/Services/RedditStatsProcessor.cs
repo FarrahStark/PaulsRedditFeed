@@ -10,6 +10,7 @@ namespace PaulsRedditFeed
         private readonly ILogger<RedditStatsProcessor> logger;
         private readonly ConnectionMultiplexer redis;
         private readonly AppSettings settings;
+        private ISubscriber messageQueue;
 
         public RedditStatsProcessor(
             IHubContext<RedditStatsHub> statsHub,
@@ -21,6 +22,7 @@ namespace PaulsRedditFeed
             this.logger = logger;
             this.redis = redis;
             this.settings = settings;
+            this.messageQueue = redis.GetSubscriber();
         }
 
         protected async override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -28,7 +30,6 @@ namespace PaulsRedditFeed
             if (stoppingToken.IsCancellationRequested) { return; }
             logger.LogInformation($"{nameof(RedditStatsProcessor)} Started");
             logger.LogInformation("Subscribing to the redis stats queue");
-            var messageQueue = redis.GetSubscriber();
             messageQueue.Subscribe(settings.Redis.QueueChannelName).OnMessage(async payload =>
             {
                 logger.LogInformation("Message recieved from queue. Processing...");
@@ -70,7 +71,8 @@ namespace PaulsRedditFeed
 
         public override void Dispose()
         {
-            logger.LogCritical("Why is this getting killed");
+            logger.LogInformation($"{nameof(RedditStatsProcessor)} is shutting down. Unsubscribing from redis queue");
+            messageQueue.Unsubscribe(settings.Redis.QueueChannelName);
             base.Dispose();
         }
     }

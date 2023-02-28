@@ -65,5 +65,10 @@
         /// Key for redis hash that stores the state of monitored subreddits
         /// </summary>
         public string MonitorQueueKey { get; } = "subreddit_monitor_queue";
+
+        /// <summary>
+        /// Key for distributed locking so all the server instances don't do the same work
+        /// </summary>
+        public string MonitorQueueLock { get; } = "subreddit_monitor_queue_lock";
     }
 }
