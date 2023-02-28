@@ -1,11 +1,24 @@
 ﻿@using PaulsRedditFeed;
 @model List<SubredditViewModel>;
 
+<Table class="table subreddit-table">
+    <tr>
+        <th class="subreddit-column" scope="col">Subreddit</th>
+        <th scope="col">Hottest Post</th>
+        <th class="vote-column" scope="col"><img src="~/upvote.png" alt="upvote arrow icon" class="vote-icon" /></th>
+        <th class="vote-column" scope="col"><img src="~/downvote.png" alt="downvote arrow icon" class="vote-icon" /></th>
+        <th class="active-users-column" scope="col">Active Users</th>
+    </tr>
+    <tbody >
 @foreach (var subreddit in Model)
 {
     <tr>
-        <td>@subreddit.Title</td>
-        <td>@subreddit.TopPostTitle</td>
-        <td>@subreddit.ActiveUserCount</td>
+        <td>r/@subreddit.Title</td>
+        <td class="hot-post">@subreddit.TopPostTitle</td>
+        <td class="vote-column">@subreddit.TopPostUpvotes</td>
+        <td class="vote-column">@subreddit.TopPostDownvotes</td>
+        <td class ="active-users-column">@subreddit.ActiveUserCount</td>
     </tr>
 }
+    </tbody>
+</Table>

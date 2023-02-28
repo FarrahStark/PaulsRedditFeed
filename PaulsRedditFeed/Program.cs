@@ -32,6 +32,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDistributedMemoryCache();
 
 builder.Services.AddTransient<RedditTokenHandler>();
+builder.Services.AddTransient<RedditApiClient>();
 builder.Services.AddHttpClient(RedditTokenHandler.SearchClientName, httpClient =>
     {
         httpClient.DefaultRequestHeaders.Add("Accept", "application/json, text/json, text/x-json, text/javascript, application/xml, text/xml");

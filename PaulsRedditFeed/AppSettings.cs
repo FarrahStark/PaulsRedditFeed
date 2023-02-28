@@ -60,5 +60,10 @@
         /// Key for redis hash that stores the state of monitored subreddits
         /// </summary>
         public string SubredditSubscriptionKey { get; } = "subreddit_subscriptions";
+
+        /// <summary>
+        /// Key for redis hash that stores the state of monitored subreddits
+        /// </summary>
+        public string MonitorQueueKey { get; } = "subreddit_monitor_queue";
     }
 }
