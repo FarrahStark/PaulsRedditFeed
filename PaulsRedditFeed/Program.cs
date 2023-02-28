@@ -1,10 +1,12 @@
+using IdentityModel.Client;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using PaulsRedditFeed;
+using PaulsRedditFeed.Controllers;
 using Reddit;
+using Reddit.Models.Internal;
 using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Configuration.AddJsonFile("appsettings.Testing.json", optional: true, reloadOnChange: true);
 var settings = builder.Configuration.GetSection("AppSettings").Get<AppSettings>();
 if (settings == null)
 {
@@ -28,12 +30,22 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddLogging(loggers => loggers.AddConsole());
 builder.Services.AddControllersWithViews();
 builder.Services.AddDistributedMemoryCache();
-builder.Services.AddHttpClient<RedditMonitor>()
-    .ConfigureHttpClient(httpClient =>
+
+builder.Services.AddTransient<RedditTokenHandler>();
+builder.Services.AddHttpClient(RedditTokenHandler.SearchClientName, httpClient =>
     {
-        httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {settings.Reddit.RefreshToken}");
-        httpClient.BaseAddress = new Uri(settings.Reddit.BaseUrl);
+        httpClient.DefaultRequestHeaders.Add("Accept", "application/json, text/json, text/x-json, text/javascript, application/xml, text/xml");
+        httpClient.DefaultRequestHeaders.Add("User-Agent", settings.Reddit.UserAgent);
+        httpClient.DefaultRequestHeaders.Add("Connection", "Kepp-Alive");
+        httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate");
+    }).AddHttpMessageHandler<RedditTokenHandler>();
+
+builder.Services.AddHttpClient(RedditTokenHandler.AuthClientName, client =>
+    {
+        client.BaseAddress = new Uri(settings.Reddit.AuthUrl);
+        client.DefaultRequestHeaders.Add("Accept", "application/json");
     });
+
 builder.Services.AddHostedService<RedditMonitor>();
 builder.Services.AddHostedService<RedditStatsProcessor>();
 builder.Services.AddSingleton<FilterManager>();
@@ -43,7 +55,7 @@ var redditClient = new RedditClient(
     settings.Reddit.AppId,
     settings.Reddit.RefreshToken,
     settings.Reddit.AppSecret,
-    userAgent: "windows:lionsandtigersubzilla:v2.0.0 (by /u/lionsandtigersubzilla)");
+    userAgent: settings.Reddit.UserAgent);
 builder.Services.AddSingleton((services) => redditClient);
 
 var app = builder.Build();

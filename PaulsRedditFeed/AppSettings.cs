@@ -13,7 +13,18 @@
         public string AppSecret { get; set; } = string.Empty;
         public string RefreshToken { get; set; } = string.Empty;
         public string UserAgent { get; set; } = string.Empty;
+
+        /// <summary>
+        /// The base url for the reddit API to use for collecting monitoring data
+        /// </summary>
         public string BaseUrl { get; set; } = string.Empty;
+
+        /// <summary>
+        /// The base url for the actual reddit API
+        /// </summary>
+        public string LiveBaseUrl { get; set; } = string.Empty;
+
+        public string AuthUrl { get; set; } = string.Empty;
 
         /// <summary>
         /// The filters a new user gets if they haven't chose any
@@ -34,6 +45,16 @@
         /// Key for users hash
         /// </summary>
         public string UserKey { get; } = "users";
+
+        /// <summary>
+        /// Key for hash to cached subreddit info data
+        /// </summary>
+        public string SubredditInfoKey { get; } = "subreddit_info";
+
+        /// <summary>
+        /// Key for hash to cached hot post data
+        /// </summary>
+        public string HotPostInfoKey { get; } = "hotpost_info";
 
         /// <summary>
         /// Key for redis hash that stores the state of monitored subreddits

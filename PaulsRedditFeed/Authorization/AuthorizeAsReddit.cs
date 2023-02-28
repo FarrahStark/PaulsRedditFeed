@@ -10,7 +10,8 @@ public class AuthorizeAsReddit : Attribute, IAuthorizationFilter
         var settings = context.HttpContext.RequestServices.GetRequiredService<AppSettings>();
         var requiredHeader = $"bearer {settings.Reddit.RefreshToken}";
         var requestAuthHeaderValue = context.HttpContext.Request.Headers.Authorization.FirstOrDefault();
-        if (requestAuthHeaderValue == null || requestAuthHeaderValue != requiredHeader)
+        var actualHeader = "b" + (requestAuthHeaderValue?.Substring(1) ?? string.Empty);
+        if (requestAuthHeaderValue == null || actualHeader != requiredHeader)
         {
             context.Result = new ForbidResult();
         }

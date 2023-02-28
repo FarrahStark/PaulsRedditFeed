@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace PaulsRedditFeed.Tests;
@@ -23,6 +24,11 @@ internal class PaulsRedditFeedWebApplicationFactory : WebApplicationFactory<Prog
     /// <param name="builder"></param>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        builder.ConfigureAppConfiguration((hostingContext, config) =>
+        {
+            config.AddJsonFile("appsettings.Testing.json", optional: true, reloadOnChange: true);
+        });
+
         builder.ConfigureServices(services =>
         {
             // Alter the registerd services in TProgram.cs and replace them with
