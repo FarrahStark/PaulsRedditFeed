@@ -2,6 +2,18 @@
 
 ASP.NET Core (.NET 6.0) Reddit API Usage Example.
 
+## Summary
+
+PaulsRedditFeed allows users to select N-number of subreddits to watch for active users, and the current hottest post of that subreddit
+
+
+Uses Redis as a distributed cache, and message queue for loadbalanced deployments of this application. SignalR uses Redis to create sticky
+sessions to keep clients connected to the same server instance for their session.
+
+The reddit API is rate limited to 60 requests per second so for testing I created a simulated reddit API for the calls I am making. This will
+allow enough data throughput to show the real-time nature of the system, demonstrate proper multithreading, logging, caching, authentication,
+websockets usage with sticky sessions
+
 ## System Architecture
 
 ![PaulsRedditFeed Software Architecture Diagram](AppArchitecture.png?raw=true "Title")
@@ -48,7 +60,7 @@ ASP.NET Core (.NET 6.0) Reddit API Usage Example.
 1. Open a terminal and navigate to the folder where you cloned the repo
 1. Run `dotnet build`
 1. Run `dotnet run --project ./PaulsRedditFeed/PaulsRedditFeed.csproj`
-1. Open a browser and navigate to `https://localhost:7154`
+1. Open a browser and navigate to `https://localhost:7154` to see it in action
 
 ### Running the Tests
 
