@@ -16,7 +16,7 @@ function Get-ContainerState([string]$name) {
     return $containerState.Trim()
 }
 
-function New-RedisCache([string]$name, [boolean]$rebuild) {
+function New-RedisCache([string]$name, [int]$port, [boolean]$rebuild) {
     Write-Host "`nEnsuring Redis Docker container $name is created and running" -ForegroundColor Cyan
     $containerState = Get-ContainerState $name
     if ($rebuild) {
@@ -40,7 +40,7 @@ function New-RedisCache([string]$name, [boolean]$rebuild) {
         }
 
         Write-Host "Creating new container"
-        docker run -d --restart always --name $name redis
+        docker run -d --restart always --name $name -p $port`:6379 redis
     }
 
     do {

@@ -34,7 +34,7 @@ if (!$dockerFound) {
     Exit 1
 }
 
-New-RedisCache PaulsRedditFeedCache $Rebuild
-New-RedisCache PaulsRedditFeedTestCache $Rebuild
+New-RedisCache PaulsRedditFeedCache 4729 $Rebuild
+New-RedisCache PaulsRedditFeedTestCache 4642 $Rebuild
 
 Write-Host "`nMachine Setup Completed`n" -ForegroundColor Cyan
