@@ -24,7 +24,7 @@ public class FilterManager
         var key = $"{userId}_filters";
         //TODO: add validation for existance of subreddits
         //(I would usuall put TODOs in task tracker to be vetted by the team)
-        var filterJson = JsonConvert.SerializeObject(filters);
+        var filterJson = JsonSerializer.Serialize(filters);
         await redis.GetDatabase().StringSetAsync(key, filterJson);
     }
 
@@ -36,7 +36,7 @@ public class FilterManager
         if (string.IsNullOrWhiteSpace(filterJson))
         {
             // If no filters have been cached for the user we set the default
-            filterJson = JsonConvert.SerializeObject(settings.Reddit.DefaultFilters);
+            filterJson = JsonSerializer.Serialize(settings.Reddit.DefaultFilters);
             await db.StringSetAsync(key, filterJson);
         }
     }

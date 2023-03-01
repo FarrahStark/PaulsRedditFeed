@@ -73,7 +73,7 @@ public class RedditApiClient
             var redditRequest = new HttpRequestMessage(HttpMethod.Get, requestUrl);
             var redditResponse = await redditApi.SendAsync(redditRequest);
             var jsonString = await redditResponse.Content.ReadAsStringAsync();
-            var data = JsonConvert.DeserializeObject<TModel>(jsonString);
+            var data = JsonSerializer.Deserialize<TModel>(jsonString);
 
             logger.LogDebug($"No cached result found. Querying redditAPI at {request.PathAndQuery}");
             await redisDb.StringSetAsync(responseCacheKey, json, cacheLifespan);
@@ -90,7 +90,7 @@ public class RedditApiClient
             case nameof(HotPostRawData):
                 try
                 {
-                    var hotPost = JsonConvert.DeserializeObject<HotPostRawData>(json);
+                    var hotPost = JsonSerializer.Deserialize<HotPostRawData>(json);
                     if (hotPost == null)
                     {
                         throw new JsonSerializationException($"unable to deserialize json to a {nameof(HotPostRawData)}");
@@ -103,7 +103,7 @@ public class RedditApiClient
                         post.data.downs = (int)(post.data.ups / ratio);
                         return post;
                     }).OrderByDescending(post => post.data.upvote_ratio).ToArray();
-                    json = JsonConvert.SerializeObject(hotPost);
+                    json = JsonSerializer.Serialize(hotPost);
                 }
                 catch (Exception ex)
                 {
@@ -111,14 +111,14 @@ public class RedditApiClient
                 }
                 break;
             case nameof(RawSubredditInfo):
-                var aboutSubreddit = JsonConvert.DeserializeObject<RawSubredditInfo>(json);
+                var aboutSubreddit = JsonSerializer.Deserialize<RawSubredditInfo>(json);
                 if (aboutSubreddit == null)
                 {
                     throw new JsonSerializationException($"unable to deserialize json to a {nameof(RawSubredditInfo)}");
                 }
 
                 aboutSubreddit.data.active_user_count = GetFluctuatedValue(aboutSubreddit.data.active_user_count);
-                json = JsonConvert.SerializeObject(aboutSubreddit);
+                json = JsonSerializer.Serialize(aboutSubreddit);
                 break;
             default: throw new NotImplementedException($"No reddit request cache has been configured for {typeof(TModel).Name}");
         }

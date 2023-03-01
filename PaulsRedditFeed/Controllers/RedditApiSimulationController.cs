@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Mvc;
 
 namespace PaulsRedditFeed;
 
@@ -18,18 +19,31 @@ public class RedditApiSimulationController : Controller
     }
 
     [HttpGet("r/{subreddit}/hot")]
-    [Produces("application/json")]
     public async Task<IActionResult> Hot(string subreddit)
     {
-        string json = await reddit.SendRequestAsync<HotPostRawData>(Request.ToUrlParts());
+        var request = Request.ToUrlParts();
+        if (string.IsNullOrWhiteSpace(request.QueryString))
+        {
+            // Set default search filters query string if we weren't passed any
+            request.QueryString = "?g=&show=all&sr_detail=False&after=&before=&limit=5&count=0&raw_json=1";
+            request.PathAndQuery = request.Path + request.QueryString;
+        }
+
+        string json = await reddit.SendRequestAsync<HotPostRawData>(request);
         return Ok(json);
     }
 
     [HttpGet("r/{subreddit}/about")]
-    [Produces("application/json")]
     public async Task<IActionResult> About(string subreddit)
     {
-        string json = await reddit.SendRequestAsync<RawSubredditInfo>(Request.ToUrlParts());
+        var request = Request.ToUrlParts();
+        if (string.IsNullOrWhiteSpace(request.QueryString))
+        {
+            // Set default search filters query string if we weren't passed any
+            request.QueryString = "?user=&show=all&sr_detail=False&after=&before=&limit=1&count=0&raw_json=1";
+            request.PathAndQuery = request.Path + request.QueryString;
+        }
+        string json = await reddit.SendRequestAsync<RawSubredditInfo>(request);
         return Ok(json);
     }
 }

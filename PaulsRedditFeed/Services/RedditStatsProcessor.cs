@@ -36,7 +36,7 @@ namespace PaulsRedditFeed
                 SubredditDataMessage? message = null;
                 try
                 {
-                    message = JsonConvert.DeserializeObject<SubredditDataMessage>(payload.Message);
+                    message = JsonSerializer.Deserialize<SubredditDataMessage>(payload.Message);
                 }
                 catch (Exception ex)
                 {
@@ -67,7 +67,7 @@ namespace PaulsRedditFeed
 
         public async Task NotifyClientsAsync<T>(T payload)
         {
-            await statsHub.Clients.All.SendAsync("ReceiveMessage", JsonConvert.SerializeObject(payload));
+            await statsHub.Clients.All.SendAsync("ReceiveMessage", JsonSerializer.Serialize(payload));
         }
 
         public override void Dispose()

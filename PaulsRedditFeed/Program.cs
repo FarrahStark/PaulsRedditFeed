@@ -25,8 +25,6 @@ builder.Services.AddSingleton(settings);
 builder.Services.AddControllersWithViews();
 builder.Services.AddLogging(loggers => loggers.AddConsole());
 
-builder.Services.AddControllersWithViews().AddNewtonsoftJson();
-
 builder.Services.AddTransient<RedditTokenHandler>();
 builder.Services.AddTransient<RedditApiClient>();
 builder.Services.AddHttpClient(RedditTokenHandler.SearchClientName, httpClient =>
@@ -35,7 +33,7 @@ builder.Services.AddHttpClient(RedditTokenHandler.SearchClientName, httpClient =
         httpClient.DefaultRequestHeaders.Add("Accept", "application/json, text/json, text/x-json, text/javascript, application/xml, text/xml");
         httpClient.DefaultRequestHeaders.Add("User-Agent", settings.Reddit.UserAgent);
         httpClient.DefaultRequestHeaders.Add("Connection", "Keep-Alive");
-        httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip");
+        httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip,deflate");
     }).AddHttpMessageHandler<RedditTokenHandler>();
 
 builder.Services.AddHttpClient(RedditTokenHandler.AuthClientName, client =>

@@ -118,17 +118,19 @@
             try
             {
                 logger.LogInformation($"Scanning subreddit r/{subredditName}");
+                HotPostData hotPosts;
+                RawSubredditInfo subredditData;
 
                 // Collect json data from reddit
-                var subredditData = await reddit.SendRequestAsync<RawSubredditInfo>(
-                    new UrlParts($"r/{subredditName}/about?user=&show=all&sr_detail=False&after=&before=&limit=1&count=0&raw_json=1"));
-                var hotPosts = await reddit.SendRequestAsync<HotPostRawData>(
+                var aboutRequest = reddit.SendRequestAsync<HotPostRawData>(
                     new UrlParts($"r/{subredditName}/hot?g=&show=all&sr_detail=False&after=&before=&limit=5&count=0&raw_json=1"));
+                var hotRequest = reddit.SendRequestAsync<RawSubredditInfo>(
+                    new UrlParts($"r/{subredditName}/about?user=&show=all&sr_detail=False&after=&before=&limit=1&count=0&raw_json=1"));
+
+                await Task.WhenAll(new[] { aboutRequest, hotRequest });
 
                 // pass returned json from reddit straight to the queue without deserializing
-                var dataJson = $"{{\"HotPosts\": {hotPosts},\"Subreddit\": {subredditData}}}";
-
-
+                var dataJson = $"{{\"HotPosts\": {hotRequest.Result},\"Subreddit\": {aboutRequest.Result}}}";
                 // Queue up the collected data for processing
                 await messageQueue.PublishAsync(settings.Redis.QueueChannelName, dataJson);
                 logger.LogInformation($"Scan complete r/{subredditName}");
@@ -183,13 +185,13 @@
                         SubscriberCount = subscriberCount,
                     };
 
-                    var subscriptionJson = JsonConvert.SerializeObject(subscription);
+                    var subscriptionJson = JsonSerializer.Serialize(subscription);
                     return new HashEntry(subredditKey, subscriberCount);
                 }).ToArray();
 
             var userEntries = users.Select(user =>
             {
-                var userJson = JsonConvert.SerializeObject(user);
+                var userJson = JsonSerializer.Serialize(user);
                 return new HashEntry(user.Id, userJson);
             }).ToArray();
 
