@@ -12,6 +12,7 @@ if (settings == null)
 
 // Add services to the container.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+builder.Services.AddRequestDecompression();
 
 builder.Services.AddSignalR().AddStackExchangeRedis(settings.Redis.ConnectionString, options =>
 {
@@ -60,7 +61,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
+app.UseRequestDecompression();
 app.UseRouting();
 
 app.UseAuthorization();
