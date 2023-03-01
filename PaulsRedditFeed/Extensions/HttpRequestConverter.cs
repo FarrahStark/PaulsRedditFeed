@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Http.Extensions;
-using PaulsRedditFeed.Models;
 
 namespace PaulsRedditFeed;
 

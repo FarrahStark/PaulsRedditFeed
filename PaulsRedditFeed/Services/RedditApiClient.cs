@@ -1,8 +1,4 @@
 ﻿using Microsoft.AspNetCore.WebUtilities;
-using PaulsRedditFeed.Models;
-using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Text.Unicode;
 
 namespace PaulsRedditFeed;
 

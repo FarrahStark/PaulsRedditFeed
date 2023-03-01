@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.WebUtilities;
-
-namespace PaulsRedditFeed.Models;
+﻿namespace PaulsRedditFeed;
 
 public class UrlParts
 {

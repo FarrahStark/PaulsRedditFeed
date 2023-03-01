@@ -1,8 +1,4 @@
-﻿using PaulsRedditFeed.Models;
-using StackExchange.Redis;
-using System.Text.Json;
-
-namespace PaulsRedditFeed
+﻿namespace PaulsRedditFeed
 {
     public class RedditMonitor : BackgroundService
     {
