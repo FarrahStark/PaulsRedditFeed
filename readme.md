@@ -28,7 +28,7 @@ process the monitoring tasks in the message queue, so each server can perform a 
 ### Prerequisites
 
 - Powershell Core 7.2+
-- .NET 6 SDK
+- .NET 7 SDK
 - Docker
 - Reddit API Secrets for local environment
 
@@ -38,7 +38,7 @@ process the monitoring tasks in the message queue, so each server can perform a 
 
 1. Install/update powershell core to 7.2 or higher https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.3
 1. Install Docker https://www.docker.com/
-1. Install .NET 6 SDK https://dotnet.microsoft.com/en-us/download/dotnet/6.0
+1. Install .NET 7 SDK https://dotnet.microsoft.com/en-us/download/dotnet/7.0
 1. Restart your machine
 1. Clone this repository
 1. Switch Docker to use Linux Containers
