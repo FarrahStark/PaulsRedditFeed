@@ -36,15 +36,16 @@ namespace PaulsRedditFeed
                 SubredditDataMessage? message = null;
                 try
                 {
-                    message = JsonSerializer.Deserialize<SubredditDataMessage>(payload.Message);
+                    message = JsonConvert.DeserializeObject<SubredditDataMessage>(payload.Message);
                 }
                 catch (Exception ex)
                 {
+                    logger.LogError("Unable to deserialize queue message", ex);
                 }
 
                 if (message == null)
                 {
-                    logger.LogError($"Unable to deserialize {nameof(SubredditRawData)}: {payload.Message}");
+                    logger.LogError($"Unable to deserialize {nameof(SubredditDataMessage)}: {payload.Message}");
                 }
                 else
                 {
@@ -66,7 +67,7 @@ namespace PaulsRedditFeed
 
         public async Task NotifyClientsAsync<T>(T payload)
         {
-            await statsHub.Clients.All.SendAsync("ReceiveMessage", JsonSerializer.Serialize(payload));
+            await statsHub.Clients.All.SendAsync("ReceiveMessage", JsonConvert.SerializeObject(payload));
         }
 
         public override void Dispose()

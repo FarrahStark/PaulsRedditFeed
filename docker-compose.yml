@@ -1,0 +1,36 @@
+version: '3.4'
+
+services:
+  paulsredditfeed:
+    image: ${DOCKER_REGISTRY-}paulsredditfeed
+    build:
+      context: .
+      dockerfile: PaulsRedditFeed/Dockerfile
+    deploy:
+      replicas: 5
+    environment:
+      - ASPNETCORE_ENVIRONMENT="Development"
+
+  redis:
+    image: redis
+    container_name: redis-cache
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_AOF_ENABLED=yes
+    ports:
+      - '4727:6379'
+    restart: always
+    volumes:
+      - "paulsredditfeed-data:/var/lib/"
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - paulsredditfeed
+    ports:
+      - "4823:4000"
+
+volumes:
+  paulsredditfeed-data:

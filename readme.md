@@ -1,11 +1,10 @@
 # Paul's Reddit Feed
 
-ASP.NET Core (.NET 6.0) Reddit API Usage Example.
+ASP.NET Core (.NET 7.0) Reddit API Usage Example.
 
 ## Summary
 
 PaulsRedditFeed allows users to select N-number of subreddits to watch for active users, and the current hottest post of that subreddit
-
 
 Uses Redis as a distributed cache, and message queue for loadbalanced deployments of this application. SignalR uses Redis to create sticky
 sessions to keep clients connected to the same server instance for their session.

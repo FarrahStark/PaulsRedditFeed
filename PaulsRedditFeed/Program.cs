@@ -1,12 +1,8 @@
-using IdentityModel.Client;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using PaulsRedditFeed;
-using PaulsRedditFeed.Controllers;
-using Reddit;
-using Reddit.Models.Internal;
-using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddEnvironmentVariables("REDDITFEED");
 var settings = builder.Configuration.GetSection("AppSettings").Get<AppSettings>();
 if (settings == null)
 {
@@ -15,7 +11,6 @@ if (settings == null)
 }
 
 // Add services to the container.
-builder.Services.AddRazorPages();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
 
 builder.Services.AddSignalR().AddStackExchangeRedis(settings.Redis.ConnectionString, options =>
@@ -28,17 +23,18 @@ builder.Services.AddSignalR().AddStackExchangeRedis(settings.Redis.ConnectionStr
 builder.Services.AddSingleton(settings);
 builder.Services.AddControllersWithViews();
 builder.Services.AddLogging(loggers => loggers.AddConsole());
-builder.Services.AddControllersWithViews();
-builder.Services.AddDistributedMemoryCache();
+
+builder.Services.AddControllersWithViews().AddNewtonsoftJson();
 
 builder.Services.AddTransient<RedditTokenHandler>();
 builder.Services.AddTransient<RedditApiClient>();
 builder.Services.AddHttpClient(RedditTokenHandler.SearchClientName, httpClient =>
     {
+        httpClient.BaseAddress = new Uri(settings.Reddit.BaseUrl);
         httpClient.DefaultRequestHeaders.Add("Accept", "application/json, text/json, text/x-json, text/javascript, application/xml, text/xml");
         httpClient.DefaultRequestHeaders.Add("User-Agent", settings.Reddit.UserAgent);
-        httpClient.DefaultRequestHeaders.Add("Connection", "Kepp-Alive");
-        httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate");
+        httpClient.DefaultRequestHeaders.Add("Connection", "Keep-Alive");
+        httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip");
     }).AddHttpMessageHandler<RedditTokenHandler>();
 
 builder.Services.AddHttpClient(RedditTokenHandler.AuthClientName, client =>
@@ -51,13 +47,6 @@ builder.Services.AddHostedService<RedditMonitor>();
 builder.Services.AddHostedService<RedditStatsProcessor>();
 builder.Services.AddSingleton<FilterManager>();
 builder.Services.AddSingleton(ConnectionMultiplexer.Connect(settings.Redis.ConnectionString));
-
-var redditClient = new RedditClient(
-    settings.Reddit.AppId,
-    settings.Reddit.RefreshToken,
-    settings.Reddit.AppSecret,
-    userAgent: settings.Reddit.UserAgent);
-builder.Services.AddSingleton((services) => redditClient);
 
 var app = builder.Build();
 

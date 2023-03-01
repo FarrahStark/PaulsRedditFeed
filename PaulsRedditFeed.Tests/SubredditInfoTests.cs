@@ -34,7 +34,7 @@ namespace PaulsRedditFeed.Tests
             request.Headers.Add("Accept", "application/json, text/json, text/x-json, text/javascript, application/xml, text/xml");
             request.Headers.Add("userAgent", settings.Reddit.UserAgent);
             request.Headers.Add("Connection", "Kepp-Alive");
-            request.Headers.Add("Accept-Encoding", "gzip, deflate");
+            request.Headers.Add("Accept-Encoding", "gzip");
 
             if (configure != null)
             {
