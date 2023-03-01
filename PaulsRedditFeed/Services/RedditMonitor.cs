@@ -1,9 +1,6 @@
-﻿using Microsoft.AspNetCore.SignalR;
-using PaulsRedditFeed.Models;
-using Reddit;
+﻿using PaulsRedditFeed.Models;
 using StackExchange.Redis;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace PaulsRedditFeed
 {
@@ -190,13 +187,13 @@ namespace PaulsRedditFeed
                         SubscriberCount = subscriberCount,
                     };
 
-                    var subscriptionJson = JsonSerializer.Serialize(subscription);
+                    var subscriptionJson = JsonConvert.SerializeObject(subscription);
                     return new HashEntry(subredditKey, subscriberCount);
                 }).ToArray();
 
             var userEntries = users.Select(user =>
             {
-                var userJson = JsonSerializer.Serialize(user);
+                var userJson = JsonConvert.SerializeObject(user);
                 return new HashEntry(user.Id, userJson);
             }).ToArray();
 

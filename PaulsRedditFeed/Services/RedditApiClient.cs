@@ -1,11 +1,8 @@
-﻿using Microsoft.AspNetCore.Http.Extensions;
-using Microsoft.AspNetCore.WebUtilities;
-using PaulsRedditFeed.Controllers;
+﻿using Microsoft.AspNetCore.WebUtilities;
 using PaulsRedditFeed.Models;
-using Reddit;
-using StackExchange.Redis;
-using System;
+using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Unicode;
 
 namespace PaulsRedditFeed;
 
@@ -28,11 +25,6 @@ public class RedditApiClient
         this.settings = settings;
         this.redis = redis;
         this.httpClientFactory = httpClientFactory;
-    }
-
-    public async Task<string> SendRequestAsync<TModel>(HttpRequest request) where TModel : new()
-    {
-        throw new NotImplementedException();
     }
 
     /// <summary>
@@ -71,7 +63,7 @@ public class RedditApiClient
         }
 
         responseCacheKey += $"_{request.PathAndQuery}";
-        var cacheLifespan = TimeSpan.FromSeconds(30);
+        var cacheLifespan = TimeSpan.FromSeconds(60);
         var calculatedLimit = Math.Max(requestedLimit, targetLimit).ToString();
         queryValues["limit"] = calculatedLimit;
 
@@ -81,12 +73,11 @@ public class RedditApiClient
         string json = "{}";
         if (!cachedResult.HasValue || cachedResult.IsNullOrEmpty)
         {
-            var baseUri = new Uri(settings.Reddit.LiveBaseUrl);
-            var requestUri = new Uri(baseUri, request.Path).ToString();
-            var requestUrl = QueryHelpers.AddQueryString(requestUri, queryValues);
+            var requestUrl = QueryHelpers.AddQueryString(request.Path, queryValues);
             var redditRequest = new HttpRequestMessage(HttpMethod.Get, requestUrl);
             var redditResponse = await redditApi.SendAsync(redditRequest);
-            json = await redditResponse.Content.ReadAsStringAsync();
+            var jsonString = await redditResponse.Content.ReadAsStringAsync();
+            var data = JsonConvert.DeserializeObject<TModel>(jsonString);
 
             logger.LogDebug($"No cached result found. Querying redditAPI at {request.PathAndQuery}");
             await redisDb.StringSetAsync(responseCacheKey, json, cacheLifespan);
@@ -97,20 +88,13 @@ public class RedditApiClient
             json = cachedResult.ToString();
         }
 
-        var serializerOptions = new JsonSerializerOptions()
-        {
-            IgnoreReadOnlyFields = true,
-            IgnoreReadOnlyProperties = true,
-            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-        };
-
         // Randomize data to make it look like real time API updates
         switch (modelName)
         {
             case nameof(HotPostRawData):
                 try
                 {
-                    var hotPost = JsonSerializer.Deserialize<HotPostRawData>(json, serializerOptions);
+                    var hotPost = JsonConvert.DeserializeObject<HotPostRawData>(json);
                     if (hotPost == null)
                     {
                         throw new JsonSerializationException($"unable to deserialize json to a {nameof(HotPostRawData)}");
@@ -123,22 +107,22 @@ public class RedditApiClient
                         post.data.downs = (int)(post.data.ups / ratio);
                         return post;
                     }).OrderByDescending(post => post.data.upvote_ratio).ToArray();
-                    json = JsonSerializer.Serialize(hotPost, serializerOptions);
+                    json = JsonConvert.SerializeObject(hotPost);
                 }
                 catch (Exception ex)
                 {
-
+                    logger.LogError("Unable to read reddit response data", ex);
                 }
                 break;
             case nameof(RawSubredditInfo):
-                var aboutSubreddit = JsonSerializer.Deserialize<RawSubredditInfo>(json, serializerOptions);
+                var aboutSubreddit = JsonConvert.DeserializeObject<RawSubredditInfo>(json);
                 if (aboutSubreddit == null)
                 {
-                    throw new JsonSerializationException($"unable to deserialize json to a {nameof(SubredditRawData)}");
+                    throw new JsonSerializationException($"unable to deserialize json to a {nameof(RawSubredditInfo)}");
                 }
 
                 aboutSubreddit.data.active_user_count = GetFluctuatedValue(aboutSubreddit.data.active_user_count);
-                json = JsonSerializer.Serialize(aboutSubreddit, serializerOptions);
+                json = JsonConvert.SerializeObject(aboutSubreddit);
                 break;
             default: throw new NotImplementedException($"No reddit request cache has been configured for {typeof(TModel).Name}");
         }

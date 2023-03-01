@@ -19,11 +19,6 @@
         /// </summary>
         public string BaseUrl { get; set; } = string.Empty;
 
-        /// <summary>
-        /// The base url for the actual reddit API
-        /// </summary>
-        public string LiveBaseUrl { get; set; } = string.Empty;
-
         public string AuthUrl { get; set; } = string.Empty;
 
         /// <summary>
