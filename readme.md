@@ -1,6 +1,6 @@
 # Paul's Reddit Feed
 
-ASP.NET Core (.NET 7.0) Reddit API Usage Example.
+Highly scalable ASP.NET Core (.NET 7.0) web application that displays data asynchronously retrieved from the Reddit API.
 
 ## Summary
 
@@ -36,13 +36,14 @@ process the monitoring tasks in the message queue, so each server can perform a 
 
 #### Install Prerequisites
 
-1. Install/update powershell core to 7.2 or higher https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.3
+1. Install/update PowerShell core to 7.2 or higher https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.3
 1. Install Docker https://www.docker.com/
 1. Install .NET 7 SDK https://dotnet.microsoft.com/en-us/download/dotnet/7.0
 1. Restart your machine
 1. Clone this repository
+1. Make sure Docker is running
 1. Switch Docker to use Linux Containers
-1. Run `dev-startup.ps1`
+1. Run `dev-startup.ps1` from a PowerShell terminal
 1. Request a copy of the secrets from Paul
 
 #### Running the Project
@@ -64,7 +65,8 @@ process the monitoring tasks in the message queue, so each server can perform a 
 1. Open the created `secrets.json`
 1. Paste the secrets from Paul, save and close the file
 1. Open a terminal and navigate to the folder where you cloned the repo
-1. Run `dotnet build`
+1. If you haven't before run `dotnet dev-certs https --trust` to enable local https for the app
+1. Run `dotnet build PaulsRedditFeed.sln`
 1. Run `dotnet run --project ./PaulsRedditFeed/PaulsRedditFeed.csproj`
 1. Open a browser and navigate to `https://localhost:7154` to see it in action
 
