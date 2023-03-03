@@ -59,47 +59,27 @@
 
             var db = redis.GetDatabase();
 
-            // Publish raw subreddit data to queue
-            var monitoredSubreddits = subredditSubscriptions
-                .Where(subreddit => int.Parse(subreddit.Value) > 0)
-                .ToArray();
-
-            // watch the queue for incoming tasks
-            messageQueue.Subscribe(settings.Redis.MonitorQueueKey).OnMessage(async payload =>
-            {
-                if (stoppingToken.IsCancellationRequested)
-                {
-                    return;
-                }
-
-                var subredditName = payload.Message.ToString();
-                try
-                {
-                    logger.LogDebug($"Scanning {subredditName} for updates");
-                    await Task.Run(() => MonitorSubreddit(subredditName, stoppingToken));
-                }
-                finally
-                {
-                    // Once a subreddit has been monitored, wait a bit and throw it back on the queue
-                    // to get that subreddit monitored again by one of the server instances
-                    await Task.Delay(1000);
-                    await messageQueue.PublishAsync(settings.Redis.MonitorQueueKey, subredditName);
-                }
-            });
-
             // One of the server instances will get a distributed lock here, and will get the monitoring queue running
             if (await db.LockTakeAsync(settings.Redis.MonitorQueueLock, ServerInstanceId, TimeSpan.FromSeconds(30)))
             {
-                logger.LogInformation("Monitor queue lock acquired. Initializing monitoring queue tasks");
                 try
                 {
-                    var startMonitoringQueue = monitoredSubreddits.Select(s =>
+                    logger.LogInformation("Monitor queue lock acquired. Initializing monitoring queue tasks");
+                    var monitoredSubreddits = subredditSubscriptions
+                    .Where(subreddit => int.Parse(subreddit.Value) > 0)
+                    .Select(subreddit =>
                     {
-                        var subName = s.Name.ToString();
-                        logger.LogInformation($"Initializing monitoring for r/{s.Name}");
-                        return messageQueue.PublishAsync(settings.Redis.MonitorQueueKey, s.Name);
-                    });
-                    await Task.WhenAll(startMonitoringQueue);
+                        db.ListRightPush(settings.Redis.MonitorQueueKey, subreddit.Name);
+                        return subreddit;
+                    })
+                    .ToArray();
+                    //var startMonitoringQueue = monitoredSubreddits.Select(s =>
+                    //{
+                    //    var subName = s.Name.ToString();
+                    //    logger.LogInformation($"Initializing monitoring for r/{s.Name}");
+                    //    return messageQueue.PublishAsync(settings.Redis.MonitorQueueKey, s.Name);
+                    //});
+                    //await Task.WhenAll(startMonitoringQueue);
                 }
                 finally
                 {
@@ -110,6 +90,29 @@
             else
             {
                 logger.LogInformation("Unable to get lock. Monitor queue is probably being initialzed by a different server instance");
+            }
+
+            var monitorIntervalMs = 3000;
+            var startMonitorAfter = random.Next(1, 3000);
+            await Task.Delay(startMonitorAfter); // Staggers the monitoring per server so they don't all collect at the exact same time
+
+            // watch the queue for incoming tasks
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                // subreddits are monitored in round robin by servers. Pop will get the next item.
+                var subredditName = await db.ListLeftPopAsync(settings.Redis.MonitorQueueKey);
+                try
+                {
+                    logger.LogDebug($"Scanning {subredditName} for updates");
+                    await MonitorSubreddit(subredditName, stoppingToken);
+                }
+                finally
+                {
+                    // Once a subreddit has been monitored, wait a bit and throw it back on the queue
+                    // to get that subreddit monitored again by one of the server instances
+                    await Task.Delay(3000);
+                    await db.ListRightPushAsync(settings.Redis.MonitorQueueKey, subredditName);
+                }
             }
         }
 

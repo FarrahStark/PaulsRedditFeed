@@ -11,8 +11,7 @@ public class Program
         builder.Services.AddLogging(loggers => loggers.AddConsole());
         var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
         var envSettings = $"appsettings.{builder.Environment.EnvironmentName}.json";
-        logger.LogCritical($"PaulsRedditFeed starting with environment: {builder.Environment.EnvironmentName}");
-        logger.LogInformation($"Settings should be coming from {envSettings}");
+        logger.LogInformation($"PaulsRedditFeed starting with environment: {builder.Environment.EnvironmentName}");
         builder.Configuration.AddJsonFile(envSettings, optional: true, reloadOnChange: true);
         builder.Configuration.AddEnvironmentVariables("REDDITFEED");
         builder.Configuration.AddUserSecrets("aae5bb4b-a48c-402c-9522-4e0811d57b4a");
@@ -23,10 +22,6 @@ public class Program
             var message = "Unable to find AppSettings section from app configuration. Check appsettings.json and secrets configuration.";
             throw new SettingsLoadException(message);
         }
-
-        logger.LogCritical(JsonSerializer.Serialize(settings));
-
-        logger.LogCritical($"Redis Connection String: {settings.Redis.ConnectionString}");
 
         builder.Services.AddRequestDecompression();
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
