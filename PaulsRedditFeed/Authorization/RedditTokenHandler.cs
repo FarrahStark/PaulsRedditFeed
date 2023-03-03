@@ -1,11 +1,11 @@
 ﻿using IdentityModel.Client;
-using System.Net.Http;
 
 namespace PaulsRedditFeed;
 
 /// <summary>
-/// Requests an access token from the reddit API to authenticate with OAuth2 before
-/// sending search requests to reddit
+/// Ensures reqeuests to the reddit api have an unexpired access token.
+/// Requests an OAuth2 access token from the reddit API for authenticatcation
+/// of subsequent requests
 /// </summary>
 public class RedditTokenHandler : DelegatingHandler
 {
@@ -15,7 +15,6 @@ public class RedditTokenHandler : DelegatingHandler
     private readonly IHttpClientFactory httpClientFactory;
     private readonly AppSettings settings;
     private HttpClient AuthClient => httpClientFactory.CreateClient(AuthClientName);
-    private HttpClient SearchClient => httpClientFactory.CreateClient(SearchClientName);
 
     public RedditTokenHandler(
         ILogger<RedditTokenHandler> logger,
@@ -48,12 +47,10 @@ public class RedditTokenHandler : DelegatingHandler
         }
         else
         {
-            request.Headers.Add("Authorization", $"bearer {accessToken.AccessToken}");
+            request.Headers.Add("Authorization", $"Bearer {accessToken.AccessToken}");
         }
 
         // Proceed calling the inner handler, that will actually send the request
-        // to our protected api
-
         return await base.SendAsync(request, cancellationToken);
     }
 }

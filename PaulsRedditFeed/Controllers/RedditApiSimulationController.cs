@@ -36,14 +36,7 @@ public class RedditApiSimulationController : Controller
     [HttpGet("r/{subreddit}/about")]
     public async Task<IActionResult> About(string subreddit)
     {
-        var request = Request.ToUrlParts();
-        if (string.IsNullOrWhiteSpace(request.QueryString))
-        {
-            // Set default search filters query string if we weren't passed any
-            request.QueryString = "?user=&show=all&sr_detail=False&after=&before=&limit=1&count=0&raw_json=1";
-            request.PathAndQuery = request.Path + request.QueryString;
-        }
-        string json = await reddit.SendRequestAsync<RawSubredditInfo>(request);
+        string json = await reddit.SendRequestAsync<RawSubredditInfo>(Request.ToUrlParts());
         return Ok(json);
     }
 }

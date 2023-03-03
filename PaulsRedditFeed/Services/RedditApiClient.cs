@@ -72,10 +72,9 @@ public class RedditApiClient
             var requestUrl = QueryHelpers.AddQueryString(request.Path, queryValues);
             var redditRequest = new HttpRequestMessage(HttpMethod.Get, requestUrl);
             var redditResponse = await redditApi.SendAsync(redditRequest);
-            var jsonString = await redditResponse.Content.ReadAsStringAsync();
-            var data = JsonSerializer.Deserialize<TModel>(jsonString);
-
             logger.LogDebug($"No cached result found. Querying redditAPI at {request.PathAndQuery}");
+            json = await redditResponse.Content.ReadAsStringAsync();
+            logger.LogDebug($"Reddit API Query returned with status {redditResponse.StatusCode} {request.PathAndQuery}");
             await redisDb.StringSetAsync(responseCacheKey, json, cacheLifespan);
         }
         else

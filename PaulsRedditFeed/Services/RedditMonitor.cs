@@ -122,10 +122,10 @@
                 RawSubredditInfo subredditData;
 
                 // Collect json data from reddit
-                var aboutRequest = reddit.SendRequestAsync<HotPostRawData>(
+                var hotRequest = reddit.SendRequestAsync<HotPostRawData>(
                     new UrlParts($"r/{subredditName}/hot?g=&show=all&sr_detail=False&after=&before=&limit=5&count=0&raw_json=1"));
-                var hotRequest = reddit.SendRequestAsync<RawSubredditInfo>(
-                    new UrlParts($"r/{subredditName}/about?user=&show=all&sr_detail=False&after=&before=&limit=1&count=0&raw_json=1"));
+                var aboutRequest = reddit.SendRequestAsync<RawSubredditInfo>(
+                    new UrlParts($"r/{subredditName}/about"));
 
                 await Task.WhenAll(new[] { aboutRequest, hotRequest });
 
