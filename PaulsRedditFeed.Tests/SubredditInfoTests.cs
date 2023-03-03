@@ -8,8 +8,8 @@ namespace PaulsRedditFeed.Tests
         const string Token = "Afaketoken124";
 
         [Theory]
-        [InlineData($"bearer {Token}", HttpStatusCode.OK)]
-        [InlineData($"bearer saldkfjlksajf", HttpStatusCode.Forbidden)]
+        [InlineData($"Bearer {Token}", HttpStatusCode.OK)]
+        [InlineData($"Bearer saldkfjlksajf", HttpStatusCode.Forbidden)]
         [InlineData($"aklfujlksafj098324", HttpStatusCode.Forbidden)]
         public async Task Request_rejected_when_not_authorized(string authHeaderValue, HttpStatusCode expectedStatus)
         {

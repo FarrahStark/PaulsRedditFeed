@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using PaulsRedditFeed;
+using System.Net;
+using System.Net.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables("REDDITFEED");
@@ -10,10 +12,8 @@ if (settings == null)
     throw new SettingsLoadException(message);
 }
 
-// Add services to the container.
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
 builder.Services.AddRequestDecompression();
-
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
 builder.Services.AddSignalR().AddStackExchangeRedis(settings.Redis.ConnectionString, options =>
 {
     /* Enable sticky sessions. Redis is used as the backplane to keep users connected to
@@ -27,15 +27,24 @@ builder.Services.AddLogging(loggers => loggers.AddConsole());
 
 builder.Services.AddTransient<RedditTokenHandler>();
 builder.Services.AddTransient<RedditApiClient>();
+
+// Creates an Http Client for requesting date from the reddit API
 builder.Services.AddHttpClient(RedditTokenHandler.SearchClientName, httpClient =>
     {
         httpClient.BaseAddress = new Uri(settings.Reddit.BaseUrl);
         httpClient.DefaultRequestHeaders.Add("Accept", "application/json, text/json, text/x-json, text/javascript, application/xml, text/xml");
         httpClient.DefaultRequestHeaders.Add("User-Agent", settings.Reddit.UserAgent);
         httpClient.DefaultRequestHeaders.Add("Connection", "Keep-Alive");
-        httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip,deflate");
-    }).AddHttpMessageHandler<RedditTokenHandler>();
+        httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate");
+    })
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+    {
+        AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+    })
+    .AddHttpMessageHandler<RedditTokenHandler>(); // handles OAuth2.0 access token management for the reddit API
 
+// Register Http client for refreshing access tokens as needed to maintain
+// Authentication with OAuth2, otherwise the Acces token will expire and API request will fail
 builder.Services.AddHttpClient(RedditTokenHandler.AuthClientName, client =>
     {
         client.BaseAddress = new Uri(settings.Reddit.AuthUrl);
@@ -59,11 +68,9 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseRequestDecompression();
 app.UseRouting();
-
 app.UseAuthorization();
-
+app.UseRequestDecompression();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
