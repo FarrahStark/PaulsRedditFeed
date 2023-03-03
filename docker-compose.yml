@@ -17,6 +17,38 @@ services:
       - $APPDATA/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
       - $APPDATA/ASP.NET/Https:/root/.aspnet/https:ro
 
+  paulsredditfeed2:
+    image: ${DOCKER_REGISTRY-}paulsredditfeed
+    build:
+      context: .
+      dockerfile: PaulsRedditFeed/Dockerfile
+    ports:
+      - "81:80"
+    depends_on:
+      - redis
+    environment:
+      - ASPNETCORE_ENVIRONMENT=DockerCompose
+      - ASPNETCORE_URLS=http://+:80
+    volumes:
+      - $APPDATA/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - $APPDATA/ASP.NET/Https:/root/.aspnet/https:ro
+
+  paulsredditfeed3:
+    image: ${DOCKER_REGISTRY-}paulsredditfeed
+    build:
+      context: .
+      dockerfile: PaulsRedditFeed/Dockerfile
+    ports:
+      - "82:80"
+    depends_on:
+      - redis
+    environment:
+      - ASPNETCORE_ENVIRONMENT=DockerCompose
+      - ASPNETCORE_URLS=http://+:80
+    volumes:
+      - $APPDATA/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - $APPDATA/ASP.NET/Https:/root/.aspnet/https:ro
+
   redis:
     container_name: redis
     image: redis
