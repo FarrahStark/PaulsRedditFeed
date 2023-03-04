@@ -63,7 +63,6 @@ public class Program
 
         builder.Services.AddHostedService<RedditMonitor>();
         builder.Services.AddHostedService<RedditStatsProcessor>();
-        builder.Services.AddSingleton<FilterManager>();
         builder.Services.AddSingleton(ConnectionMultiplexer.Connect(settings.Redis.ConnectionString));
 
         var app = builder.Build();

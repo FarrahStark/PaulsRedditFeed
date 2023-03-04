@@ -4,14 +4,29 @@ ASP.NET Core (.NET 7.0) Reddit API Usage Example.
 
 ## Summary
 
-PaulsRedditFeed allows users to select N-number of subreddits to watch for active users, and the current hottest post of that subreddit
+PaulsRedditFeed displays statistics generated from data collected from reddit API.
 
 Uses Redis as a distributed cache, and message queue for loadbalanced deployments of this application. SignalR uses Redis to create sticky
 sessions to keep clients connected to the same server instance for their session.
 
-The reddit API is rate limited to 60 requests per second so for testing and demonstration purposes I created a simulated reddit API with no
-rate limits. This allows enough data throughput to show the real-time nature of the system, and to demonstrate proper multithreading, logging,
+The reddit API is rate limited to 60 requests per second so don't scale past This allows enough data throughput to show the real-time nature of the system, and to demonstrate proper multithreading, logging,
 caching, authentication, and websockets usage with sticky sessions.
+
+## Cool Stuff About Paul's Reddit Feed
+
+- Cross platform (tested on: Windows/Linux/macOS)
+- Proper use of multithreading using the Task Parallel Library and async/await
+  - Keeps background work from blocking requests
+  - The RedditMonitor should probably be run in it's own container rather than using threading so the monitoring workload
+    doesn't affect client web traffic performance, and so web traffic and monitoring can be scaled independently.
+- Distributed consumer provider pattern using redis pub sub
+  - Each server gets work from the redis pub sub and handles it so the work is evenly distributed between severs
+- Stateless servers for easy scaling
+- Response caching
+- Sticky websocket sessions to keep clients connected to the same sever using SingalR and Redis
+- Docker Compose for quickly standing up a local load balanced environment with 3 servers
+  - uses nginx to load balance traffic between 3 instances of PaulsRedditFeed running on linux containers
+- UI that uses websockets to update the page as stats updates are reported
 
 ## System Architecture
 
@@ -47,22 +62,34 @@ process the monitoring tasks in the message queue, so each server can perform a 
 
 #### Running the Project
 
-##### Visual Studio 2022
-
-1. Open `PaulsRedditFeed.sln`
-1. In Solution Explorer, right-click PaulsRedditFeed project, and select manage user secrets
-1. A secrets.json file will open
-1. Replace the contents of secrets.json with the the secrets from Paul
-1. Save secrets.json and close it
-1. Run PaulsRedditFeed project to see it in action
-
-##### .NET CLI
+##### Setup Your user Secrets
 
 1. Create a new `secrets.json` file in one of the following locations:
    - Windows: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`%APPDATA%\Microsoft\UserSecrets\aae5bb4b-a48c-402c-9522-4e0811d57b4a/secrets.json`
    - Linux/macOS: &nbsp;&nbsp;`~/.microsoft/usersecrets/aae5bb4b-a48c-402c-9522-4e0811d57b4a/secrets.json`
 1. Open the created `secrets.json`
 1. Paste the secrets from Paul, save and close the file
+
+Once you have the user secrets setup you can choose from one of the following options:
+
+##### (1) Docker Compose (Windows Only)
+
+This will setup a full integration testing envirionment with load balanced servers and live data.
+The path's in `docker-compose.yml` are not cross platform at the momement so it will only work out of the box on windows.
+
+1. Make sure the docker engine is running
+1. Open a terminal
+1. Run `docker compose up -d`
+1. Open your web browser to `localhost:4000`
+1. Run `docker compose down` to tear down all the containers for PaulsRedditFeed and stop them
+
+##### (2) Visual Studio 2022 (Windows Only)
+
+1. Open `PaulsRedditFeed.sln`
+1. Run PaulsRedditFeed project to see it in action
+
+##### (3) .NET CLI (Cross Platform)
+
 1. Open a terminal and navigate to the folder where you cloned the repo
 1. Run `dotnet build`
 1. Run `dotnet run --project ./PaulsRedditFeed/PaulsRedditFeed.csproj`

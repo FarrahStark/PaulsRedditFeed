@@ -1,6 +1,9 @@
 ﻿namespace PaulsRedditFeed
 {
-    public class SubredditViewModel
+    /// <summary>
+    /// View model to show stats about subreddits to users
+    /// </summary>
+    public class SubredditStatsViewModel
     {
         public string Title { get; set; } = "";
         public int ActiveUserCount { get; set; } = 0;

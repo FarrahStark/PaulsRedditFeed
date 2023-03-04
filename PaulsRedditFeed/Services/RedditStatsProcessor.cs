@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using StackExchange.Redis;
-using System.Text.Json;
 
 namespace PaulsRedditFeed
 {
@@ -51,7 +49,7 @@ namespace PaulsRedditFeed
                 {
                     var topPost = message.HotPosts.data.children.FirstOrDefault();
 
-                    var viewModel = new SubredditViewModel
+                    var viewModel = new SubredditStatsViewModel
                     {
                         Title = message.Subreddit.data.display_name,
                         ActiveUserCount = message.Subreddit.data.active_user_count,

@@ -1,14 +1,11 @@
-using AutoFixture;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using PaulsRedditFeed.Tests;
 
-namespace PaulsRedditFeed;
+namespace PaulsRedditFeed.Tests;
 
 /// <summary>
 /// Base class for integration tests that run against an in memory version of PaulsRedditFeed
 /// </summary>
-public abstract class IntegrationTest
+public abstract class RedditFeedIntegrationTest
 {
     private readonly PaulsRedditFeedWebApplicationFactory testAppFactory;
     protected IServiceProvider Services { get; }
@@ -24,7 +21,7 @@ public abstract class IntegrationTest
     /// </summary>
     protected Fixture Fixture { get; } = new Fixture();
 
-    public IntegrationTest()
+    public RedditFeedIntegrationTest()
     {
         testAppFactory = new PaulsRedditFeedWebApplicationFactory(ConfigureServices);
         Services = testAppFactory.Services;

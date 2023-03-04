@@ -66,20 +66,15 @@
                 {
                     logger.LogInformation("Monitor queue lock acquired. Initializing monitoring queue tasks");
                     var monitoredSubreddits = subredditSubscriptions
-                    .Where(subreddit => int.Parse(subreddit.Value) > 0)
-                    .Select(subreddit =>
+                        .Where(s => int.Parse(s.Value) > 0)
+                        .Select(s => (string)s.Name)
+                        .OrderBy(subreddit => subreddit, StringComparer.InvariantCultureIgnoreCase)
+                        .ToArray();
+
+                    foreach (var subredditName in monitoredSubreddits)
                     {
-                        db.ListRightPush(settings.Redis.MonitorQueueKey, subreddit.Name);
-                        return subreddit;
-                    })
-                    .ToArray();
-                    //var startMonitoringQueue = monitoredSubreddits.Select(s =>
-                    //{
-                    //    var subName = s.Name.ToString();
-                    //    logger.LogInformation($"Initializing monitoring for r/{s.Name}");
-                    //    return messageQueue.PublishAsync(settings.Redis.MonitorQueueKey, s.Name);
-                    //});
-                    //await Task.WhenAll(startMonitoringQueue);
+                        db.ListRightPush(settings.Redis.MonitorQueueKey, subredditName);
+                    }
                 }
                 finally
                 {
@@ -93,7 +88,7 @@
             }
 
             var monitorIntervalMs = 3000;
-            var startMonitorAfter = random.Next(1, 3000);
+            var startMonitorAfter = random.Next(1, monitorIntervalMs);
             await Task.Delay(startMonitorAfter); // Staggers the monitoring per server so they don't all collect at the exact same time
 
             // watch the queue for incoming tasks
@@ -122,13 +117,13 @@
             {
                 logger.LogInformation($"Scanning subreddit r/{subredditName}");
                 HotPostData hotPosts;
-                RawSubredditInfo subredditData;
+                SubredditRawData subredditData;
 
-                // Collect json data from reddit
+                // Collect json data from reddit on a single subreddit
                 var hotRequest = reddit.SendRequestAsync<HotPostRawData>(
-                    new UrlParts($"r/{subredditName}/hot?g=&show=all&sr_detail=False&after=&before=&limit=5&count=0&raw_json=1"));
-                var aboutRequest = reddit.SendRequestAsync<RawSubredditInfo>(
-                    new UrlParts($"r/{subredditName}/about"));
+                    $"r/{subredditName}/hot?g=&show=all&sr_detail=False&after=&before=&limit=5&count=0&raw_json=1");
+                var aboutRequest = reddit.SendRequestAsync<SubredditRawData>(
+                    $"r/{subredditName}/about");
 
                 await Task.WhenAll(new[] { aboutRequest, hotRequest });
 

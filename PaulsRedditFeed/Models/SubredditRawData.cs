@@ -1,12 +1,9 @@
 ﻿namespace PaulsRedditFeed;
 
-public class SubredditDataMessage
-{
-    public RawSubredditInfo Subreddit { get; set; }
-    public HotPostRawData HotPosts { get; set; }
-}
-
-public class RawSubredditInfo
+/// <summary>
+/// Redit api response model for about requests on subreddits
+/// </summary>
+public class SubredditRawData
 {
     public string kind { get; set; }
     public SubredditInfoData data { get; set; }

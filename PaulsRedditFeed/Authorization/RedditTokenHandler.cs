@@ -7,6 +7,7 @@ namespace PaulsRedditFeed;
 /// Requests an OAuth2 access token from the reddit API for authenticatcation
 /// of subsequent requests
 /// </summary>
+/// <inheritdoc cref="DelegatingHandler"/>
 public class RedditTokenHandler : DelegatingHandler
 {
     public const string AuthClientName = "RedditAuth";
@@ -26,6 +27,10 @@ public class RedditTokenHandler : DelegatingHandler
         this.settings = settings;
     }
 
+    /// <summary>
+    /// Middleware method to manage refreshing the access token to the reddit api with oauth2
+    /// </summary>
+    /// <inheritdoc />
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,
         CancellationToken cancellationToken)

@@ -32,36 +32,23 @@ public class RedditApiClient
     /// <exception cref="NotImplementedException"></exception>
     /// <exception cref="JsonSerializationException"></exception>
     /// <exception cref="CachingException"></exception>
-    public async Task<string> SendRequestAsync<TModel>(UrlParts request) where TModel : new()
+    public async Task<string> SendRequestAsync<TModel>(string url) where TModel : new()
     {
-        int targetLimit = 1;
-        var queryValues = QueryHelpers.ParseQuery(request.QueryString);
-
-        int requestedLimit = 5;
-        if (queryValues.ContainsKey("limit") && int.TryParse(queryValues["limit"], out int parsedLimit))
-        {
-            requestedLimit = parsedLimit;
-        }
-
         string responseCacheKey;
         var modelName = typeof(TModel).Name;
         switch (modelName)
         {
             case nameof(HotPostRawData):
                 responseCacheKey = settings.Redis.HotPostInfoKey;
-                targetLimit = 10;
                 break;
-            case nameof(RawSubredditInfo):
+            case nameof(SubredditRawData):
                 responseCacheKey = settings.Redis.SubredditInfoKey;
-                targetLimit = 1;
                 break;
             default: throw new NotImplementedException($"No reddit request cache has been configured for {typeof(TModel).Name}");
         }
 
-        responseCacheKey += $"_{request.PathAndQuery}";
+        responseCacheKey += $"_{url}";
         var cacheLifespan = TimeSpan.FromSeconds(60);
-        var calculatedLimit = Math.Max(requestedLimit, targetLimit).ToString();
-        queryValues["limit"] = calculatedLimit;
 
         var redisDb = redis.GetDatabase();
         var cachedResult = await redisDb.StringGetAsync(responseCacheKey);
@@ -69,17 +56,16 @@ public class RedditApiClient
         string json = "{}";
         if (!cachedResult.HasValue || cachedResult.IsNullOrEmpty)
         {
-            var requestUrl = QueryHelpers.AddQueryString(request.Path, queryValues);
-            var redditRequest = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+            var redditRequest = new HttpRequestMessage(HttpMethod.Get, url);
             var redditResponse = await redditApi.SendAsync(redditRequest);
-            logger.LogDebug($"No cached result found. Querying redditAPI at {request.PathAndQuery}");
+            logger.LogDebug($"No cached result found. Querying redditAPI at {url}");
             json = await redditResponse.Content.ReadAsStringAsync();
-            logger.LogDebug($"Reddit API Query returned with status {redditResponse.StatusCode} {request.PathAndQuery}");
+            logger.LogDebug($"Reddit API Query returned with status {redditResponse.StatusCode} {url}");
             await redisDb.StringSetAsync(responseCacheKey, json, cacheLifespan);
         }
         else
         {
-            logger.LogDebug($"Returning cached result for {request.PathAndQuery}");
+            logger.LogDebug($"Returning cached result for {url}");
             json = cachedResult.ToString();
         }
 
@@ -109,11 +95,11 @@ public class RedditApiClient
                     logger.LogError("Unable to read reddit response data", ex);
                 }
                 break;
-            case nameof(RawSubredditInfo):
-                var aboutSubreddit = JsonSerializer.Deserialize<RawSubredditInfo>(json);
+            case nameof(SubredditRawData):
+                var aboutSubreddit = JsonSerializer.Deserialize<SubredditRawData>(json);
                 if (aboutSubreddit == null)
                 {
-                    throw new JsonSerializationException($"unable to deserialize json to a {nameof(RawSubredditInfo)}");
+                    throw new JsonSerializationException($"unable to deserialize json to a {nameof(SubredditRawData)}");
                 }
 
                 aboutSubreddit.data.active_user_count = GetFluctuatedValue(aboutSubreddit.data.active_user_count);
@@ -122,7 +108,7 @@ public class RedditApiClient
             default: throw new NotImplementedException($"No reddit request cache has been configured for {typeof(TModel).Name}");
         }
 
-        return json ?? throw new CachingException($"Cache lookup for request failed {request.PathAndQuery}");
+        return json ?? throw new CachingException($"Cache lookup for request failed {url}");
     }
 
     private static int GetFluctuatedValue(int value)

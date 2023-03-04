@@ -1,5 +1,8 @@
 ﻿namespace PaulsRedditFeed;
 
+/// <summary>
+/// Redit api response model for hot post requests
+/// </summary>
 public class HotPostRawData
 {
     public string kind { get; set; }
