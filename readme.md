@@ -1,27 +1,15 @@
 # Paul's Reddit Feed
 
-ASP.NET Core (.NET 7.0) Reddit API Usage Example.
+ASP.NET Core (.NET 7.0) Highly Scalable Server that displays statistics generated from data collected from the reddit API.
 
 ## Summary
 
-PaulsRedditFeed displays statistics generated from data collected from reddit API.
-
-Uses Redis as a distributed cache, and message queue for loadbalanced deployments of this application. SignalR uses Redis to create sticky
-sessions to keep clients connected to the same server instance for their session.
-
-The reddit API is rate limited to 60 requests per second so don't scale past This allows enough data throughput to show the real-time nature of the system, and to demonstrate proper multithreading, logging,
-caching, authentication, and websockets usage with sticky sessions.
-
-## Cool Stuff About Paul's Reddit Feed
-
 - Cross platform (tested on: Windows/Linux/macOS)
 - Proper use of multithreading using the Task Parallel Library and async/await
-  - Keeps background work from blocking requests
-  - The RedditMonitor should probably be run in it's own container rather than using threading so the monitoring workload
-    doesn't affect client web traffic performance, and so web traffic and monitoring can be scaled independently.
+  - Keeps background work from blocking requests and websockets traffic
 - Distributed consumer provider pattern using redis pub sub
   - Each server gets work from the redis pub sub and handles it so the work is evenly distributed between severs
-- Stateless servers for easy scaling
+- Stateless servers designed for easy scaling and load balancing
 - Response caching
 - Sticky websocket sessions to keep clients connected to the same sever using SingalR and Redis
 - Docker Compose for quickly standing up a local load balanced environment with 3 servers
@@ -106,3 +94,5 @@ This project uses xUnit, and a redis cache dedicated for testing to keep test da
 - The docker containers created by `dev-startup.ps1` will be restarted automatically on reboot, and must be removed with the Docker GUI or CLI if you want the conainers off your machine. To remove the conainers permanently:
   - Run `docker rm --force PaulsRedditFeedCache`
   - Run `docker rm --force PaulsRedditFeedTestCache`
+- The RedditMonitor should probably be run in it's own container rather than using threading so the monitoring workload
+  doesn't affect client web traffic performance, and so web traffic and monitoring can be scaled independently.
